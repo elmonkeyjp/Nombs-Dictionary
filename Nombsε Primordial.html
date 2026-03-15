@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+<title>Diccionario Nombsε</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+background:#14142b;
+color:white;
+font-family:'Montserrat', sans-serif;
+display:flex;
+justify-content:center;
+}
+
+.container{
+background:#1f1f3a;
+padding:30px;
+border-radius:12px;
+width:420px;
+margin-top:50px;
+box-shadow:0 10px 25px rgba(0,0,0,0.4);
+text-align:center;
+}
+
+h2{
+color:#7df9ff;
+}
+
+input, select{
+padding:8px;
+margin:5px;
+border-radius:6px;
+border:none;
+}
+
+button{
+padding:6px 10px;
+background:#7df9ff;
+border:none;
+border-radius:6px;
+cursor:pointer;
+margin-left:3px;
+}
+
+button:hover{
+background:#5bd0d6;
+}
+
+ul{
+list-style:none;
+padding:0;
+}
+
+li{
+background:#2c2c54;
+margin:5px auto;
+padding:8px;
+border-radius:6px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.borrar{
+background:#ff5c5c;
+}
+
+.borrar:hover{
+background:#d94444;
+}
+
+.editar{
+background:#ffd166;
+}
+
+.editar:hover{
+background:#e6b94d;
+}
+
+.admin{
+background:#8aff8a;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Diccionario Nombsε</h2>
+
+<button class="admin" onclick="login()">Modo edición</button>
+
+<div id="editor" style="display:none;">
+
+<input id="palabra" placeholder="palabra en Nombsε" onkeydown="enter(event)">
+<input id="significado" placeholder="significado" onkeydown="enter(event)">
+<br>
+<button onclick="agregar()">Guardar</button>
+
+</div>
+
+<br>
+
+<input id="buscar" placeholder="buscar..." oninput="mostrar()">
+
+<select id="orden" onchange="mostrar()">
+<option value="reciente">Más reciente</option>
+<option value="antiguo">Menos reciente</option>
+<option value="alfabetico">Orden alfabético</option>
+</select>
+
+<h3>Palabras</h3>
+<ul id="lista"></ul>
+
+</div>
+
+<script>
+
+let diccionario = JSON.parse(localStorage.getItem("diccionario")) || [];
+
+let admin=false;
+
+mostrar();
+
+function login(){
+
+let pass = prompt("Contraseña:");
+
+if(pass==="@J0n4s_246monky"){
+admin=true;
+document.getElementById("editor").style.display="block";
+mostrar();
+}
+
+}
+
+function enter(e){
+if(e.key==="Enter") agregar();
+}
+
+function guardar(){
+localStorage.setItem("diccionario",JSON.stringify(diccionario));
+}
+
+function agregar(){
+
+if(!admin) return;
+
+let palabra=document.getElementById("palabra").value.trim();
+let significado=document.getElementById("significado").value.trim();
+
+if(palabra===""||significado==="") return;
+
+diccionario.push({
+palabra,
+significado,
+fecha:Date.now()
+});
+
+guardar();
+
+document.getElementById("palabra").value="";
+document.getElementById("significado").value="";
+
+mostrar();
+
+}
+
+function borrar(i){
+
+if(!admin) return;
+
+diccionario.splice(i,1);
+
+guardar();
+
+mostrar();
+
+}
+
+function editar(i){
+
+if(!admin) return;
+
+let nuevaPalabra=prompt("Editar palabra:",diccionario[i].palabra);
+if(nuevaPalabra===null) return;
+
+let nuevoSignificado=prompt("Editar significado:",diccionario[i].significado);
+if(nuevoSignificado===null) return;
+
+diccionario[i].palabra=nuevaPalabra;
+diccionario[i].significado=nuevoSignificado;
+
+guardar();
+mostrar();
+
+}
+
+function mostrar(){
+
+let lista=document.getElementById("lista");
+lista.innerHTML="";
+
+let texto=document.getElementById("buscar").value.toLowerCase();
+let orden=document.getElementById("orden").value;
+
+let copia=[...diccionario];
+
+copia=copia.filter(p=>
+p.palabra.toLowerCase().includes(texto)||
+p.significado.toLowerCase().includes(texto)
+);
+
+if(orden==="alfabetico") copia.sort((a,b)=>a.palabra.localeCompare(b.palabra));
+if(orden==="reciente") copia.sort((a,b)=>b.fecha-a.fecha);
+if(orden==="antiguo") copia.sort((a,b)=>a.fecha-b.fecha);
+
+for(let item of copia){
+
+let i=diccionario.indexOf(item);
+
+let botones="";
+
+if(admin){
+botones=
+'<button class="editar" onclick="editar('+i+')">✏</button>'+
+'<button class="borrar" onclick="borrar('+i+')">X</button>';
+}
+
+let li=document.createElement("li");
+
+li.innerHTML=item.palabra+" = "+item.significado+
+'<span>'+botones+'</span>';
+
+lista.appendChild(li);
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
