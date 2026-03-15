@@ -124,8 +124,14 @@ background:#8aff8a;
 
 <script>
 
-let diccionario = JSON.parse(localStorage.getItem("diccionario")) || [];
+let diccionario = [];
 
+fetch("diccionario.json")
+  .then(res => res.json())
+  .then(data => {
+    diccionario = data;
+    mostrar();
+  });
 let admin=false;
 
 mostrar();
